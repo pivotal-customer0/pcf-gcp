@@ -4,20 +4,20 @@ name: bosh
 releases:
   - name: bosh
     url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=257.3
-    sha1: ff2f4e16e02f66b31c595196052a809100cfd5a8
+    sha1: e4442afcc64123e11f2b33cc2be799a0b59207d0
   - name: bosh-google-cpi
     url: https://storage.googleapis.com/bosh-cpi-artifacts/bosh-google-cpi-21.tgz
-    sha1: 9b4ada4267f1523f5d278e0813eb055e91ea15ed
+    sha1: 1bda4007a22147a700257655d64b38f6b4c5c0f1
   - name: uaa
     url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=12.2
-    sha1: 477289da17ffe105d0b6bde1bc10f61b1cb50fb4
+    sha1: 899f1e10f27e82ac524f1158a513392bbfabf2a0
 
 resource_pools:
   - name: vms
     network: private
     stemcell:
       url: https://storage.googleapis.com/bosh-cpi-artifacts/light-bosh-stemcell-3262.2-google-kvm-ubuntu-trusty-go_agent.tgz
-      sha1: 3626815e3fabe8afa7d91362eba1e4c0540795b2 
+      sha1: f46d82a6ae6e89a5635cb3122389f0c8459a82e0 
     cloud_properties:
       machine_type: n1-standard-4
       root_disk_size_gb: 50
@@ -43,10 +43,11 @@ networks:
       static: [10.0.0.3-10.0.0.7]
       cloud_properties:
         network_name: vnet
-        subnetwork_name: bosh-subnet
-        ephemeral_external_ip: true
+        subnetwork_name: bosh
+        ephemeral_external_ip: false
         tags:
           - bosh-internal
+          - no-ip
 
 jobs:
   - name: bosh
@@ -67,15 +68,13 @@ jobs:
         release: bosh
       - name: google_cpi
         release: bosh-google-cpi
-      - name: uaa
-        release: uaa
 
     resource_pool: vms
     persistent_disk_pool: disks
 
     networks:
       - name: private
-        static_ips: [10.0.0.6]
+        static_ips: [10.0.0.4]
         default:
           - dns
           - gateway
@@ -93,16 +92,15 @@ jobs:
         password: postgres-password
         database: bosh
         adapter: postgres
-        additional_databases: [uaa]
 
       dns:
-        address: 10.0.0.6
+        address: 10.0.0.4
         domain_name: microbosh
         db: *db
         recursor: 169.254.169.254
 
       blobstore:
-        address: 10.0.0.6
+        address: 10.0.0.4
         port: 25250
         provider: dav
         director:
@@ -114,15 +112,16 @@ jobs:
 
       director:
         address: 127.0.0.1
-        name: micro-google
+        name: bosh-gcp
         db: *db
         cpi_job: google_cpi
         user_management:
-          provider: uaa
-            uaa:
-              url: https://104.196.147.105:8443
-              public_key: "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxmv2EST0bwrh0rX2ab9a\nWnUusgL2es138myPRGfE7CtLOIbFECKlSgwXNpRrpMp2dOXpv6Al+sYdRSfwUlv0\noBBx/eywkLOFLXchEe0qO44Jq7vxekTveQKEvIKQ9MADyO7UOI1GLgLLf70UhDQu\n5g4Y6elyWNZQxfWG2m+3TiSvTtNB3SDSyLpiF8hLlutpQNGfIzqEBTIOCjQCRSbv\niHNknMT/Zv3Ed2vXgHrYBKybGquMTNHZfO99F4Erm6yZ/YHA7VLnGD9AIz+LE5UW\nlPf52xiEwHf/1FdD8hctM6RoifHCgWp758cpHvgN5a6GSb/qO/NOMkwA5R/1h65P\nFJ2f6bdkWzNJq8vuTKjvK8LNXnkQrvYOnRyAAf1V2fRyXIx4tBw5lHdp/hhGKt5v\nfFJcv7vLN4RPYACNYS9KLyRSVUy4v7A9SAo2RUYOrXTv+KXxUw0dUF8lxQRnER6I\nRD2x5fDy2bJQvU/m/uHZztiix8eo1wFUDtkfsXJsFRNZgm2kJweRvJnKHen9gpW3\nWWOcWfoG+nC3f1fLVvSEbXHRpkWvcCyPxFpiFXqFv0Yiq4C++zZX1OjKSkARDb0u\nMWM2xDo1M2ce5e5ouJ1ORg75G2vA+olcJ/RpEdKvzh33tCANXBWz40N5qg4+3F1K\nDuP/F7tXB+h6l9gaAeURdFMCAwEAAQ==\n-----END PUBLIC KEY-----"
-      
+        provider: local
+        local:
+          users:
+          - {name: admin, password: admin}
+          - {name: hm, password: hm-password}
+
       hm:
         director_account:
           user: hm
@@ -130,15 +129,15 @@ jobs:
         resurrector_enabled: true
 
       google: &google_properties
-        project: {{PROJECT_ID}}
-        default_zone: {{ZONE}}
+        project: customer0-next
+        default_zone: us-east1-c
 
       agent:
-        mbus: nats://nats:nats-password@10.0.0.6:4222
+        mbus: nats://nats:nats-password@10.0.0.4:4222
         ntp: *ntp
         blobstore:
            options:
-             endpoint: http://10.0.0.6:25250
+             endpoint: http://10.0.0.4:25250
              user: agent
              password: agent-password
 
@@ -151,12 +150,12 @@ cloud_provider:
     release: bosh-google-cpi
 
   ssh_tunnel:
-    host: 10.0.0.6
+    host: 10.0.0.4
     port: 22
     user: bosh
-    private_key: {{SSH_KEY_PATH}}
+    private_key: ~/.ssh/bosh
 
-  mbus: https://mbus:mbus-password@10.0.0.6:6868
+  mbus: https://mbus:mbus-password@10.0.0.4:6868
 
   properties:
     google: *google_properties
