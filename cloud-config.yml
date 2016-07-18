@@ -1,0 +1,82 @@
+azs:
+- name: z1
+  cloud_properties:
+    availability_zone: us-east1-c
+
+vm_types:
+- name: medium
+  cloud_properties:
+    machine_type: n1-standard-1
+    root_disk_size_gb: 30
+    root_disk_type: pd-standard
+- name: cell
+  cloud_properties:
+    machine_type: n1-highmem-4
+    root_disk_size_gb: 50
+    root_disk_type: pd-standard
+- name: large
+  cloud_properties:
+    machine_type: n1-highcpu-4
+    root_disk_size_gb: 30
+    root_disk_type: pd-standard
+- name: diego_access
+  cloud_properties:
+    machine_type: n1-standard-1
+    root_disk_size_gb: 30
+    root_disk_type: pd-standard
+    target_pool: diego-ssh-target-pool
+- name: router
+  cloud_properties:
+    machine_type: n1-highcpu-4
+    root_disk_size_gb: 30
+    root_disk_type: pd-standard
+    target_pool: cfrouter-target-pool
+
+disk_types:
+- name: small
+  disk_size: 3000
+  cloud_properties:
+    root_disk_size_gb: 3
+    root_disk_type: pd-standard
+- name: large
+  disk_size: 50_000
+  cloud_properties:
+    root_disk_size_gb: 50
+    root_disk_type: pd-standard
+
+networks:
+- name: private
+  type: manual
+  subnets:
+  - range: 10.0.16.0/22
+    gateway: 10.0.16.1
+    az: z1
+    static:
+    - 10.0.16.12-10.0.16.17
+    reserved:
+    - 10.0.16.254-10.0.16.255
+    - 10.0.16.1-10.0.16.6
+    dns: [8.8.8.8, 10.0.16.2]
+    cloud_properties:
+      network_name: cf
+      subnetwork_name: bosh-us-east1
+      tags:
+      - bosh-internal
+      - bosh-external
+- name: public
+  type: vip
+  # cloud_properties:
+  #   tcp_endpoints:
+  #   - "80:80"
+  #   - "443:443"
+  #   - "4443:4443"
+  #   udp_endpoints:
+  #   - "53:53"
+  
+
+compilation:
+  workers: 5
+  reuse_compilation_vms: true
+  az: z1
+  vm_type: medium
+  network: private

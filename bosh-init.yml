@@ -1,0 +1,169 @@
+---
+name: bosh
+
+releases:
+  - name: bosh
+    url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=257.3
+    sha1: ff2f4e16e02f66b31c595196052a809100cfd5a8
+  - name: bosh-google-cpi
+    url: https://storage.googleapis.com/bosh-cpi-artifacts/bosh-google-cpi-21.tgz
+    sha1: 9b4ada4267f1523f5d278e0813eb055e91ea15ed
+  - name: uaa
+    url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=12.2
+    sha1: 477289da17ffe105d0b6bde1bc10f61b1cb50fb4
+
+resource_pools:
+  - name: vms
+    network: private
+    stemcell:
+      url: https://storage.googleapis.com/bosh-cpi-artifacts/light-bosh-stemcell-3262.2-google-kvm-ubuntu-trusty-go_agent.tgz
+      sha1: 3626815e3fabe8afa7d91362eba1e4c0540795b2 
+    cloud_properties:
+      machine_type: n1-standard-4
+      root_disk_size_gb: 50
+      root_disk_type: pd-standard
+      service_scopes:
+        - compute
+        - devstorage.full_control
+
+disk_pools:
+  - name: disks
+    disk_size: 32_768
+    cloud_properties:
+      type: pd-standard
+
+networks:
+  - name: vip
+    type: vip
+  - name: private
+    type: manual
+    subnets:
+    - range: 10.0.0.0/24
+      gateway: 10.0.0.1
+      static: [10.0.0.3-10.0.0.7]
+      cloud_properties:
+        network_name: vnet
+        subnetwork_name: bosh-subnet
+        ephemeral_external_ip: true
+        tags:
+          - bosh-internal
+
+jobs:
+  - name: bosh
+    instances: 1
+
+    templates:
+      - name: nats
+        release: bosh
+      - name: postgres
+        release: bosh
+      - name: powerdns
+        release: bosh
+      - name: blobstore
+        release: bosh
+      - name: director
+        release: bosh
+      - name: health_monitor
+        release: bosh
+      - name: google_cpi
+        release: bosh-google-cpi
+      - name: uaa
+        release: uaa
+
+    resource_pool: vms
+    persistent_disk_pool: disks
+
+    networks:
+      - name: private
+        static_ips: [10.0.0.6]
+        default:
+          - dns
+          - gateway
+
+    properties:
+      nats:
+        address: 127.0.0.1
+        user: nats
+        password: nats-password
+
+      postgres: &db
+        listen_address: 127.0.0.1
+        host: 127.0.0.1
+        user: postgres
+        password: postgres-password
+        database: bosh
+        adapter: postgres
+        additional_databases: [uaa]
+
+      dns:
+        address: 10.0.0.6
+        domain_name: microbosh
+        db: *db
+        recursor: 169.254.169.254
+
+      blobstore:
+        address: 10.0.0.6
+        port: 25250
+        provider: dav
+        director:
+          user: director
+          password: director-password
+        agent:
+          user: agent
+          password: agent-password
+
+      director:
+        address: 127.0.0.1
+        name: micro-google
+        db: *db
+        cpi_job: google_cpi
+        user_management:
+          provider: uaa
+            uaa:
+              url: https://104.196.147.105:8443
+              public_key: "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxmv2EST0bwrh0rX2ab9a\nWnUusgL2es138myPRGfE7CtLOIbFECKlSgwXNpRrpMp2dOXpv6Al+sYdRSfwUlv0\noBBx/eywkLOFLXchEe0qO44Jq7vxekTveQKEvIKQ9MADyO7UOI1GLgLLf70UhDQu\n5g4Y6elyWNZQxfWG2m+3TiSvTtNB3SDSyLpiF8hLlutpQNGfIzqEBTIOCjQCRSbv\niHNknMT/Zv3Ed2vXgHrYBKybGquMTNHZfO99F4Erm6yZ/YHA7VLnGD9AIz+LE5UW\nlPf52xiEwHf/1FdD8hctM6RoifHCgWp758cpHvgN5a6GSb/qO/NOMkwA5R/1h65P\nFJ2f6bdkWzNJq8vuTKjvK8LNXnkQrvYOnRyAAf1V2fRyXIx4tBw5lHdp/hhGKt5v\nfFJcv7vLN4RPYACNYS9KLyRSVUy4v7A9SAo2RUYOrXTv+KXxUw0dUF8lxQRnER6I\nRD2x5fDy2bJQvU/m/uHZztiix8eo1wFUDtkfsXJsFRNZgm2kJweRvJnKHen9gpW3\nWWOcWfoG+nC3f1fLVvSEbXHRpkWvcCyPxFpiFXqFv0Yiq4C++zZX1OjKSkARDb0u\nMWM2xDo1M2ce5e5ouJ1ORg75G2vA+olcJ/RpEdKvzh33tCANXBWz40N5qg4+3F1K\nDuP/F7tXB+h6l9gaAeURdFMCAwEAAQ==\n-----END PUBLIC KEY-----"
+      
+      hm:
+        director_account:
+          user: hm
+          password: hm-password
+        resurrector_enabled: true
+
+      google: &google_properties
+        project: {{PROJECT_ID}}
+        default_zone: {{ZONE}}
+
+      agent:
+        mbus: nats://nats:nats-password@10.0.0.6:4222
+        ntp: *ntp
+        blobstore:
+           options:
+             endpoint: http://10.0.0.6:25250
+             user: agent
+             password: agent-password
+
+      ntp: &ntp
+        - 169.254.169.254
+
+cloud_provider:
+  template:
+    name: google_cpi
+    release: bosh-google-cpi
+
+  ssh_tunnel:
+    host: 10.0.0.6
+    port: 22
+    user: bosh
+    private_key: {{SSH_KEY_PATH}}
+
+  mbus: https://mbus:mbus-password@10.0.0.6:6868
+
+  properties:
+    google: *google_properties
+    agent:
+      mbus: https://mbus:mbus-password@0.0.0.0:6868
+      blobstore:
+        provider: local
+        options:
+          blobstore_path: /var/vcap/micro_bosh/data/cache
+      ntp: *ntp
