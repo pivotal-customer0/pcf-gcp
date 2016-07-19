@@ -1,3 +1,8 @@
+variable "project" {
+  type = "string"
+  default = "mg-sandbox"
+}
+
 variable "region" {
   type = "string"
   default = "us-east1"
@@ -8,15 +13,12 @@ variable "zone" {
   default = "us-east1-d"
 }
 
-variable "project" {
-  type = "string"
-}
-
 variable "resource-prefix" {
   type = "string"
-  default = ""
+  default = "c0-run1"
 }
 
-variable "cidr-piece" {
+variable "cidr-range" {
   type = "string"
+  default = "10.0.0.0/16"
 }
