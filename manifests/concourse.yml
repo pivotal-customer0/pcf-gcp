@@ -1,0 +1,143 @@
+name: concourse-gcp
+director_uuid: a7eaeb03-f1c4-42c3-b484-bd80168e5484
+
+releases:
+- name: concourse
+  version: 1.4.1
+- name: garden-runc
+  version: 0.4.0
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: 3232.12
+
+instance_groups:
+- name: web
+  instances: 1
+  vm_type: medium
+  stemcell: trusty
+  azs: [z1]
+  networks:
+  - name: concourse
+    default: [dns, gateway]
+    static_ips:
+    - 10.0.2.12
+  - name: public
+    static_ips:
+    - 104.196.34.116
+  jobs:
+  - name: atc
+    release: concourse
+    properties:
+      postgresql_database: atc
+      external_url: http://concourse.dwallraffcloud.com
+      # bind_port: 80
+      # tls_bind_port: 443
+      basic_auth_password: concourse
+      basic_auth_username: concourse
+      # tls_cert: |
+      #   -----BEGIN CERTIFICATE-----
+      #   MIIELTCCAxWgAwIBAgIJAOpMqFAugEByMA0GCSqGSIb3DQEBBQUAMGwxCzAJBgNV
+      #   BAYTAlVTMRMwEQYDVQQIEwpTb21lLVN0YXRlMSEwHwYDVQQKExhJbnRlcm5ldCBX
+      #   aWRnaXRzIFB0eSBMdGQxJTAjBgNVBAMTHGNvbmNvdXJzZS5kd2FsbHJhZmZjbG91
+      #   ZC5jb20wHhcNMTYwNzEyMTY0MjQxWhcNMTYwODExMTY0MjQxWjBsMQswCQYDVQQG
+      #   EwJVUzETMBEGA1UECBMKU29tZS1TdGF0ZTEhMB8GA1UEChMYSW50ZXJuZXQgV2lk
+      #   Z2l0cyBQdHkgTHRkMSUwIwYDVQQDExxjb25jb3Vyc2UuZHdhbGxyYWZmY2xvdWQu
+      #   Y29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArGkIz9jPr9hwSDpT
+      #   3ZRUMdV4JUr5qpSp9sNbbJk2zOrgM98EhlBJWrL3ot/zIuFRdJXvhcXBABkjKfG1
+      #   6WHCgZZTkjvQI8qYHbwJspzwBcsslFxb3C5mZL7jcUcSGBk2CWT9QMGUnG9uR71j
+      #   4gvEtX8E7dK5cV5B/pGnQ8U2pOr2oMJE/wzMM/pakyLE3DbuOntH95pnXdsAVOk2
+      #   0FBuDGAStAwpfXqR4pPfsI1/X8U+TxY9/awNiM080TPI9slvI85cStotw2pWNsX0
+      #   tu9ZEDV1T4hQwu15Zobt9nH4uwtpYQPrJMlGHJTXCZlxRicxYmN51bu5DBxvfeyc
+      #   mN9kTwIDAQABo4HRMIHOMB0GA1UdDgQWBBQ+Z4LNQItj9/Np6/zH4f59wv+I5jCB
+      #   ngYDVR0jBIGWMIGTgBQ+Z4LNQItj9/Np6/zH4f59wv+I5qFwpG4wbDELMAkGA1UE
+      #   BhMCVVMxEzARBgNVBAgTClNvbWUtU3RhdGUxITAfBgNVBAoTGEludGVybmV0IFdp
+      #   ZGdpdHMgUHR5IEx0ZDElMCMGA1UEAxMcY29uY291cnNlLmR3YWxscmFmZmNsb3Vk
+      #   LmNvbYIJAOpMqFAugEByMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADggEB
+      #   AAzej+9voxQ/uO3FeVo8upmtt4VniHfiSO63lzrNN+IOuoOKjgnVhk7qc24PWwhv
+      #   XWU87ysMIE+/VLo9YThiob/TRNzntScgQN12BUhvaU1fyzhCKN7ZbNsn/fQmyNFs
+      #   UZScmaFQoP7sWobXsvuEbab3xjqT30qvksx4pXyN/tbuPTGWwvXwauZDA99Edsf8
+      #   NHnOGDAzQNaGb4sgfDeg57DS2z42gbbLmBDp1CWtMMES6krBfwDL1KFttkg2VqMf
+      #   ubg5breKjlnpg9I+swx4/y6kyos6yrkcPrQc1UXJP5MRTbAv2ZRaKDCkjyJGTS3s
+      #   8k3ZQi3wVJLiCKjGHAqAsAA=
+      #   -----END CERTIFICATE-----
+      # tls_key: |
+      #   -----BEGIN RSA concourse KEY-----
+      #   MIIEowIBAAKCAQEArGkIz9jPr9hwSDpT3ZRUMdV4JUr5qpSp9sNbbJk2zOrgM98E
+      #   hlBJWrL3ot/zIuFRdJXvhcXBABkjKfG16WHCgZZTkjvQI8qYHbwJspzwBcsslFxb
+      #   3C5mZL7jcUcSGBk2CWT9QMGUnG9uR71j4gvEtX8E7dK5cV5B/pGnQ8U2pOr2oMJE
+      #   /wzMM/pakyLE3DbuOntH95pnXdsAVOk20FBuDGAStAwpfXqR4pPfsI1/X8U+TxY9
+      #   /awNiM080TPI9slvI85cStotw2pWNsX0tu9ZEDV1T4hQwu15Zobt9nH4uwtpYQPr
+      #   JMlGHJTXCZlxRicxYmN51bu5DBxvfeycmN9kTwIDAQABAoIBABhAsjeitRx0Yt8W
+      #   LWP3EJzt/Xepg1NmlD4dHwg4yUesJpvFXHqUYq06jbFAtZALiAzRZp83wT2FS7gD
+      #   w2YwFU9rWRgyB8ZxIlLUd7zDbNQzz3KTR2zCri6v14jAyZ/QNBTAOwvX71LOLgIz
+      #   dxB+PU6WrpfR07pJ2xi3XoMfA9/Q3oJlqAzVaWDs47lx4Hp1vl8mY3yW48o5LLyP
+      #   fReiiFaJ8XU7E1xXHGePuaPnAF/uSolDQDKFnD+s1Vk0IZSKipgN0MAqYMxibQIq
+      #   iWLsnf6oQynRzT6AXCqISMqRUMn8zYDTTODvjrCjNEs9HGitfYHSeL/yQYTGUjd+
+      #   nbKUY6ECgYEA1HeV2WRfJS4G/O766Rb6vWL1WybtE2GtTZ00kDCe7aqVbdBbBV8J
+      #   ceZkYe7cEzaDLpebf/lSX20WYyMDdky+9Vd1zhD1PzJGcrZ0MHnj/u7CtR8F8/1b
+      #   YbzBOoN7hdnznYys/q+G95EFgXzQR3YBVckO/Mn3VW7+oHzKTEmuZRECgYEAz7xe
+      #   +YtdbDMfeOaeC1tRqSOWn8kHu4gUEZU9CGTjvGNk9H9gX4hPnXsrGSIPfsu+AhEf
+      #   dCF1EQM4TrmBTXPqkNRqTiLtCpeapQhtNukZbt3EyNnfKes1U4kajaHVVqhmiOOs
+      #   YFSXQwQGDCUWCXfm0VDarcvX5crwdmZFvcSts18CgYBdB9+9SI3Aod69cYa7+Svh
+      #   MStttiWojuRrT6JsYF22gzLa2piASZTBIrhhiU0jvILEK+4SowDGd+WNkw85BXG3
+      #   y4vxpss72K+wGuPVNgn23mSzGdppc05IBXY2QMwdV8mr+qTk/8aBMCbRA+3O3ITJ
+      #   IzhEx8pcxjUH4JxTuw95gQKBgGd0SmBAlbAS7bOKNl81hT+Up6i/twgfxs7S4ehS
+      #   RlBFt7tDzD0HZ47oDhigK9NbqC7jVCTDnMdyMRKTs99cwQ6Lmr17C03hHnTd83YL
+      #   NE1QSHY2ersnlhEaEI1EcTiM+TNnHyuCNSp80H4v4f+pJNxNRfqTr9uS65oraMQP
+      #   NOpFAoGBAIPg+VB3mofu2NK5MfkWwID1qtTUCvKTckb3LSb3q4rH8ExnstainvnI
+      #   2Op4nNsIOqGuqlXRJrUZRMa0hwkDati0gnv5wLXbq7fz2MDgnb76Q2MaHu8qeGSr
+      #   HHLCIBnIQJfrwXgITog3pR1v9k07qa4CA408HffYuPU+IWEevxe7
+      #   -----END RSA concourse KEY-----
+  - name: tsa
+    release: concourse
+    properties: {}
+- name: db
+  persistent_disk_type: large
+  instances: 1
+  vm_type: large
+  stemcell: trusty
+  azs: [z1]
+  networks:
+  - name: concourse
+    static_ips:
+    - 10.0.2.14
+  jobs:
+  - name: postgresql
+    release: concourse
+    properties:
+      databases:
+      - name: atc
+        role: atc
+        password: secret
+- name: worker
+  instances: 2
+  vm_type: medium
+  stemcell: trusty
+  azs: [z1]
+  networks: 
+  - name: concourse
+    static_ips:
+    - 10.0.2.16
+    - 10.0.2.17
+  jobs:
+  - name: groundcrew
+    release: concourse
+    properties: {}
+  - name: baggageclaim
+    release: concourse
+    properties: {}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        allow_host_access: true
+        listen_address: 0.0.0.0:7777
+        listen_network: tcp
+
+update:
+  canaries: 1
+  max_in_flight: 3
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000

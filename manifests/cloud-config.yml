@@ -45,7 +45,7 @@ disk_types:
     root_disk_type: pd-standard
 
 networks:
-- name: private
+- name: cloudfoundry
   type: manual
   subnets:
   - range: 10.0.16.0/22
@@ -56,27 +56,36 @@ networks:
     reserved:
     - 10.0.16.254-10.0.16.255
     - 10.0.16.1-10.0.16.6
-    dns: [8.8.8.8, 10.0.16.2]
+    dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
-      network_name: cf
-      subnetwork_name: bosh-us-east1
+      network_name: vnet
+      subnetwork_name: cf
       tags:
-      - bosh-internal
-      - bosh-external
+      - nat-traverse
+- name: concourse
+  type: manual
+  subnets:
+  - range: 10.0.2.0/24
+    gateway: 10.0.2.1
+    az: z1
+    static:
+    - 10.0.2.12-10.0.2.17
+    reserved:
+    - 10.0.2.254-10.0.2.255
+    - 10.0.2.1-10.0.2.6
+    dns: [169.254.169.254, 8.8.8.8]
+    cloud_properties:
+      network_name: vnet
+      subnetwork_name: concourse
+      tags:
+      - nat-traverse
+      - concourse-public
 - name: public
   type: vip
-  # cloud_properties:
-  #   tcp_endpoints:
-  #   - "80:80"
-  #   - "443:443"
-  #   - "4443:4443"
-  #   udp_endpoints:
-  #   - "53:53"
-  
 
 compilation:
   workers: 5
   reuse_compilation_vms: true
   az: z1
   vm_type: medium
-  network: private
+  network: cloudfoundry

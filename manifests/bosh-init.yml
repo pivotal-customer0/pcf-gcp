@@ -46,7 +46,7 @@ networks:
         subnetwork_name: bosh
         ephemeral_external_ip: false
         tags:
-          - bosh-internal
+          - nat-traverse
           - no-ip
 
 jobs:
@@ -129,7 +129,7 @@ jobs:
         resurrector_enabled: true
 
       google: &google_properties
-        project: customer0-next
+        project: google.com:pcf-demos
         default_zone: us-east1-c
 
       agent:
