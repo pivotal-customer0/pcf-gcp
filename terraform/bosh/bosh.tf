@@ -76,9 +76,6 @@ resource "google_compute_instance" "bosh-bastion" {
   disk {
     image = "ubuntu-1404-trusty-v20160610"
   }
-  service_account {
-    scopes = ["cloud-platform"]
-  }
 
   network_interface {
     subnetwork = "${google_compute_subnetwork.subnet-bosh.name}"
