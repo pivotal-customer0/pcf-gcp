@@ -1,5 +1,5 @@
 name: concourse-gcp
-director_uuid: a7eaeb03-f1c4-42c3-b484-bd80168e5484
+director_uuid: e03635c6-e50c-49c9-82ee-cc56661dd5d5
 
 releases:
 - name: concourse
@@ -15,7 +15,7 @@ stemcells:
 instance_groups:
 - name: web
   instances: 1
-  vm_type: medium
+  vm_type: concourse-public
   stemcell: trusty
   azs: [z1]
   networks:
@@ -23,9 +23,6 @@ instance_groups:
     default: [dns, gateway]
     static_ips:
     - 10.0.2.12
-  - name: public
-    static_ips:
-    - 104.196.34.116
   jobs:
   - name: atc
     release: concourse
