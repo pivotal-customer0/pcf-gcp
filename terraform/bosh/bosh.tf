@@ -14,10 +14,10 @@ resource "google_compute_network" "pcf" {
   name       = "${var.resource-prefix}-vnet-pcf"
 }
 
-//// Create BOSH Static IP address for forwarding rule
-resource "google_compute_address" "bosh-director-ip" {
-  name = "${var.resource-prefix}-bosh-director-ip"
-}
+//// Create BOSH Static IP address
+//resource "google_compute_address" "bosh-director-ip" {
+//  name = "${var.resource-prefix}-bosh-director-ip"
+// }
 
 //// Create Subnet for the BOSH director
 resource "google_compute_subnetwork" "subnet-bosh" {
@@ -76,11 +76,14 @@ resource "google_compute_instance" "bosh-bastion" {
   disk {
     image = "ubuntu-1404-trusty-v20160610"
   }
+  service_account {
+    scopes = ["cloud-platform"]
+  }
 
   network_interface {
     subnetwork = "${google_compute_subnetwork.subnet-bosh.name}"
     access_config {
-      // Ephemeral IP
+      // nat_ip = "${google_compute_address.bosh-director-ip.self_link}"
     }
   }
 
