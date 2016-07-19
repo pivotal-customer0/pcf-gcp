@@ -45,11 +45,11 @@ resource "google_compute_firewall" "allow-ssh" {
   name    = "${var.resource-prefix}-allow-ssh"
   network = "${google_compute_network.pcf.name}"
   allow {
-    protocol = "icmp"
-  }
-  allow {
     protocol = "tcp"
     ports    = ["22"]
+  }
+  allow {
+    protocol = "icmp"
   }
   target_tags = ["allow-ssh"]
   source_tags = ["allow-ssh"]
