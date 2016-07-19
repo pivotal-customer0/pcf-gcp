@@ -1,5 +1,5 @@
 name: concourse-gcp
-director_uuid: e03635c6-e50c-49c9-82ee-cc56661dd5d5
+director_uuid: 6b3ef064-e1ac-41ff-b461-afc01af44ca5
 
 releases:
 - name: concourse
@@ -19,10 +19,10 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks:
-  - name: concourse
+  - name: concourse-public
     default: [dns, gateway]
     static_ips:
-    - 10.0.2.12
+    - 10.0.3.12
   jobs:
   - name: atc
     release: concourse
@@ -97,7 +97,7 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks:
-  - name: concourse
+  - name: concourse-private
     static_ips:
     - 10.0.2.14
   jobs:
@@ -114,7 +114,7 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks: 
-  - name: concourse
+  - name: concourse-private
     static_ips:
     - 10.0.2.16
     - 10.0.2.17

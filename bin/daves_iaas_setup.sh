@@ -12,7 +12,8 @@ gcloud config set compute/region ${region}
 # Create networks
 gcloud compute networks create vnet --mode custom
 gcloud compute networks subnets create bosh --network vnet --range 10.0.0.0/24
-gcloud compute networks subnets create concourse --network vnet --range 10.0.2.0/24
+gcloud compute networks subnets create concourse-public --network vnet --range 10.0.3.0/24
+gcloud compute networks subnets create concourse-private --network vnet --range 10.0.2.0/24
 gcloud compute networks subnets create cf-private --network vnet --range 10.0.16.0/22
 gcloud compute networks subnets create cf-public --network vnet --range 10.0.15.0/24
 

@@ -92,7 +92,7 @@ networks:
       subnetwork_name: cf-private
       tags:
       - nat-traverse
-- name: concourse
+- name: concourse-public
   type: manual
   subnets:
   - range: 10.0.3.0/24
@@ -106,9 +106,28 @@ networks:
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: vnet
-      subnetwork_name: concourse
+      subnetwork_name: concourse-public
       tags:
       - nat-traverse
+      - concourse-public
+- name: concourse-private
+  type: manual
+  subnets:
+  - range: 10.0.2.0/24
+    gateway: 10.0.2.1
+    az: z1
+    static:
+    - 10.0.2.12-10.0.2.17
+    reserved:
+    - 10.0.2.254-10.0.2.255
+    - 10.0.2.1-10.0.2.6
+    dns: [169.254.169.254, 8.8.8.8]
+    cloud_properties:
+      network_name: vnet
+      subnetwork_name: concourse-private
+      tags:
+      - nat-traverse
+      - concourse-private
 - name: public
   type: vip
 
