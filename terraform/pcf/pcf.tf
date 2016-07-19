@@ -89,10 +89,20 @@ resource "google_compute_firewall" "concourse" {
   target_tags = ["concourse-public"]
 }
 
+//// Create NAT Route  MG TODO Need to make the name link dynamic based on NAT instance
 
-/////////////////////////////////
-//// Create BOSH bastion host ///
-/////////////////////////////////
+//resource "google_compute_route" "no-ip-internet-route" {
+//  name        = "${var.resource-prefix}-no-ip-internet-route"
+//  dest_range  = "0.0.0.0/0"
+//  network     = "${google_compute_network.pcf.name}"
+//  next_hop_instance = "nat-gateway"
+//  priority    = 800
+//  tags        = ["no-ip"]
+//}
+
+/////////////////////////////////////
+//// Create BOSH bastion instance ///
+/////////////////////////////////////
 
 resource "google_compute_instance" "bosh-bastion" {
   name         = "${var.resource-prefix}-bosh-bastion"
@@ -127,4 +137,45 @@ EOT
   service_account {
     scopes = ["cloud-platform"]
   }
+}
+
+/////////////////////////////////
+//// Create NAT instance      ///
+/////////////////////////////////
+
+resource "google_compute_instance" "nat-gateway" {
+  name           = "${var.resource-prefix}-nat-gateway"
+  machine_type   = "n1-standard-1"
+  zone           = "${var.zone}"
+  can_ip_forward = true
+  tags = ["nat-traverse", "allow-ssh"]
+
+  disk {
+    image = "ubuntu-1404-trusty-v20160610"
+  }
+
+  network_interface {
+    subnetwork = "${google_compute_subnetwork.subnet-bosh.name}"
+    access_config {
+      // Ephemeral
+    }
+  }
+
+  metadata_startup_script = <<EOT
+  #!/bin/bash
+  "sudo sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'"
+  "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+  EOT
+}
+
+//// Create NAT Route
+
+resource "google_compute_route" "no-pubip-route" {
+  name        = "${var.resource-prefix}-no-pubip-route"
+  dest_range  = "0.0.0.0/0"
+  network     = "${google_compute_network.pcf.name}"
+  next_hop_instance = "${google_compute_instance.nat-gateway.name}"
+  next_hop_instance_zone = "${var.zone}"
+  priority    = 100
+  tags        = ["no-ip"]
 }
