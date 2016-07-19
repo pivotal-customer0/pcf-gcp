@@ -45,7 +45,25 @@ disk_types:
     root_disk_type: pd-standard
 
 networks:
-- name: cloudfoundry
+- name: cf-public
+  type: manual
+  subnets:
+  - range: 10.0.15.0/24
+    gateway: 10.0.15.1
+    az: z1
+    static:
+    - 10.0.16.12-10.0.16.17
+    reserved:
+    - 10.0.15.254-10.0.15.255
+    - 10.0.15.1-10.0.15.5
+    dns: [169.254.169.254, 8.8.8.8]
+    cloud_properties:
+      network_name: vnet
+      subnetwork_name: cf
+      tags:
+      - nat-traverse
+      - cf-public
+- name: cf-private
   type: manual
   subnets:
   - range: 10.0.16.0/22
@@ -55,7 +73,7 @@ networks:
     - 10.0.16.12-10.0.16.17
     reserved:
     - 10.0.16.254-10.0.16.255
-    - 10.0.16.1-10.0.16.6
+    - 10.0.16.1-10.0.16.5
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: vnet
@@ -88,4 +106,4 @@ compilation:
   reuse_compilation_vms: true
   az: z1
   vm_type: medium
-  network: cloudfoundry
+  network: cf-private
