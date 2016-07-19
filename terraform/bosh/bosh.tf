@@ -9,7 +9,7 @@ provider "google" {
 //// Create Network Objects   ///
 /////////////////////////////////
 
-//// Create network
+//// Create GCP Virtual Network
 resource "google_compute_network" "pcf" {
   name       = "${var.resource-prefix}-vnet-pcf"
 }
@@ -22,7 +22,21 @@ resource "google_compute_network" "pcf" {
 //// Create Subnet for the BOSH director
 resource "google_compute_subnetwork" "subnet-bosh" {
   name          = "${var.resource-prefix}-subnet-bosh-${var.region}"
-  ip_cidr_range = "${var.cidr-range}"
+  ip_cidr_range = "${var.bosh-subnet-cidr-range}"
+  network       = "${google_compute_network.pcf.self_link}"
+}
+
+//// Create Subnet for the Concourse
+resource "google_compute_subnetwork" "subnet-cc" {
+  name          = "${var.resource-prefix}-subnet-cc-${var.region}"
+  ip_cidr_range = "${var.cc-subnet-cidr-range}"
+  network       = "${google_compute_network.pcf.self_link}"
+}
+
+//// Create Subnet for the PCF
+resource "google_compute_subnetwork" "subnet-pcf" {
+  name          = "${var.resource-prefix}-subnet-pcf-${var.region}"
+  ip_cidr_range = "${var.pcf-subnet-cidr-range}"
   network       = "${google_compute_network.pcf.self_link}"
 }
 
@@ -59,6 +73,20 @@ resource "google_compute_firewall" "nat-traverse" {
   }
   target_tags = ["nat-traverse"]
   source_tags = ["nat-traverse"]
+}
+
+//// Create Firewall Rule concourse
+resource "google_compute_firewall" "concourse" {
+  name    = "${var.resource-prefix}-concourse"
+  network = "${google_compute_network.pcf.name}"
+  allow {
+    protocol = "icmp"
+  }
+  allow {
+    protocol = "tcp"
+    ports    = ["80","443"]
+  }
+  target_tags = ["concourse-public"]
 }
 
 

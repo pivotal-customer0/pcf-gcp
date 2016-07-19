@@ -18,7 +18,17 @@ variable "resource-prefix" {
   default = "c0-run1"
 }
 
-variable "cidr-range" {
+variable "bosh-subnet-cidr-range" {
   type = "string"
-  default = "10.0.0.0/16"
+  default = "10.0.0.0/24"
+}
+
+variable "cc-subnet-cidr-range" {
+  type = "string"
+  default = "10.0.2.0/24"
+}
+
+variable "pcf-subnet-cidr-range" {
+  type = "string"
+  default = "10.0.16.0/22"
 }
