@@ -308,3 +308,11 @@ resource "google_compute_route" "no-pubip-route" {
   priority    = 800
   tags        = ["no-ip"]
 }
+
+output "CloudFoundry IP Address" {
+    value = "${google_compute_address.cloudfoundry-public-ip.address}"
+}
+
+output "Concourse IP Address" {
+    value = "${google_compute_address.concourse-public-ip.address}"
+}
