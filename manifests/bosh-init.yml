@@ -42,8 +42,8 @@ networks:
       gateway: 10.0.0.1
       static: [10.0.0.3-10.0.0.7]
       cloud_properties:
-        network_name: vnet
-        subnetwork_name: bosh
+        network_name: c0-run1-vnet
+        subnetwork_name: c0-run1-subnet-bosh-us-east1
         ephemeral_external_ip: false
         tags:
           - nat-traverse
@@ -130,7 +130,7 @@ jobs:
 
       google: &google_properties
         project: google.com:pcf-demos
-        default_zone: us-east1-c
+        default_zone: us-east1-d
 
       agent:
         mbus: nats://nats:nats-password@10.0.0.4:4222
