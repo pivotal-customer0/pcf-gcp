@@ -11,55 +11,62 @@ provider "google" {
 /////////////////////////////////
 
   //// Create GCP Virtual Network
-  resource "google_compute_network" "pcf" {
-    name       = "${var.resource-prefix}-vnet-pcf"
+  resource "google_compute_network" "vnet" {
+    name       = "${var.resource-prefix}-vnet"
   }
 
-  //// Create BOSH Static IP address
-  //resource "google_compute_address" "bosh-director-ip" {
-  //  name = "${var.resource-prefix}-bosh-director-ip"
-  // }
+  //// Create CloudFoundry Static IP address
+  resource "google_compute_address" "cloudfoundry-public-ip" {
+    name   = "${var.resource-prefix}-cloudfoundry-public-ip"
+    region = "${var.region}"
+  }
+
+  //// Create Concourse Static IP address
+  resource "google_compute_address" "concourse-public-ip" {
+    name   = "${var.resource-prefix}-concourse-public-ip"
+    region = "${var.region}"
+  }
 
   //// Create Subnet for the BOSH director
   resource "google_compute_subnetwork" "subnet-bosh" {
     name          = "${var.resource-prefix}-subnet-bosh-${var.region}"
     ip_cidr_range = "${var.bosh-subnet-cidr-range}"
-    network       = "${google_compute_network.pcf.self_link}"
+    network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Subnet for the Concourse
-  resource "google_compute_subnetwork" "subnet-cc" {
-    name          = "${var.resource-prefix}-subnet-cc-${var.region}"
-    ip_cidr_range = "${var.cc-subnet-cidr-range}"
-    network       = "${google_compute_network.pcf.self_link}"
+  //// Create Public Subnet for Concourse
+  resource "google_compute_subnetwork" "subnet-concourse-public" {
+    name          = "${var.resource-prefix}-subnet-concourse-public-${var.region}"
+    ip_cidr_range = "${var.concourse-subnet-public-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Subnet for the PCF
-  resource "google_compute_subnetwork" "subnet-pcf" {
-    name          = "${var.resource-prefix}-subnet-pcf-${var.region}"
-    ip_cidr_range = "${var.pcf-subnet-cidr-range}"
-    network       = "${google_compute_network.pcf.self_link}"
+  //// Create Private Subnet for Concourse
+  resource "google_compute_subnetwork" "subnet-concourse-private" {
+    name          = "${var.resource-prefix}-subnet-concourse-private-${var.region}"
+    ip_cidr_range = "${var.concourse-subnet-private-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Firewall Rule allow-ssh
+  //// Create Public Subnet for PCF
+  resource "google_compute_subnetwork" "subnet-pcf-public" {
+    name          = "${var.resource-prefix}-subnet-pcf-public-${var.region}"
+    ip_cidr_range = "${var.pcf-subnet-public-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
+  }
+
+  //// Create Private Subnet for PCF
+  resource "google_compute_subnetwork" "subnet-pcf-private" {
+    name          = "${var.resource-prefix}-subnet-pcf-private-${var.region}"
+    ip_cidr_range = "${var.pcf-subnet-private-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
+  }
+
+
+  //// Create Firewall Rule for allow-ssh
   resource "google_compute_firewall" "allow-ssh" {
     name    = "${var.resource-prefix}-allow-ssh"
-    network = "${google_compute_network.pcf.name}"
-    allow {
-      protocol = "tcp"
-      ports    = ["22"]
-    }
-    allow {
-      protocol = "icmp"
-    }
-    target_tags = ["allow-ssh"]
-    source_tags = ["allow-ssh"]
-  }
-
-  //// Create Firewall Rule allow-ssh-public
-  resource "google_compute_firewall" "allow-ssh-public" {
-    name    = "${var.resource-prefix}-allow-ssh-public"
-    network = "${google_compute_network.pcf.name}"
+    network = "${google_compute_network.vnet.name}"
     allow {
       protocol = "tcp"
       ports    = ["22"]
@@ -68,13 +75,13 @@ provider "google" {
       protocol = "icmp"
     }
     source_ranges = ["0.0.0.0/0"]
-    target_tags   = ["allow-ssh-public"]
+    source_tags = ["allow-ssh"]
   }
 
-  //// Create Firewall Rule nat-traverse
+  //// Create Firewall Rule for nat-traverse
   resource "google_compute_firewall" "nat-traverse" {
     name    = "${var.resource-prefix}-nat-traverse"
-    network = "${google_compute_network.pcf.name}"
+    network = "${google_compute_network.vnet.name}"
 
     allow {
       protocol = "icmp"
@@ -91,20 +98,125 @@ provider "google" {
     source_tags = ["nat-traverse"]
   }
 
-  //// Create Firewall Rule concourse
+  //// Create Firewall Rule for concourse
   resource "google_compute_firewall" "concourse" {
     name    = "${var.resource-prefix}-concourse"
-    network = "${google_compute_network.pcf.name}"
+    network = "${google_compute_network.vnet.name}"
     allow {
       protocol = "icmp"
     }
     allow {
       protocol = "tcp"
-      ports    = ["80","443"]
+      ports    = ["8080","4443"]
     }
+    source_ranges = ["0.0.0.0/0"]
     target_tags = ["concourse-public"]
 }
 
+  //// Create Firewall Rule for PCF
+  resource "google_compute_firewall" "pcf-public" {
+    name    = "${var.resource-prefix}-pcf-public"
+    network = "${google_compute_network.vnet.name}"
+    allow {
+      protocol = "icmp"
+    }
+    allow {
+      protocol = "tcp"
+      ports    = ["80","443", "2222", "4443"]
+    }
+    source_ranges = ["0.0.0.0/0"]
+    target_tags = ["pcf-public"]
+}
+
+  //// Create HTTP Health Check Rule for PCF
+  resource "google_compute_http_health_check" "pcf-public" {
+  name         = "${var.resource-prefix}-pcf-public"
+  request_path = "/v2/info"
+  host         = "api.${var.sys-domain}"
+  port         = 80
+
+  healthy_threshold   = 10
+  unhealthy_threshold = 2
+  timeout_sec         = 5
+  check_interval_sec  = 30
+}
+
+  //// Create HTTP Health Check Rule for Concourse
+  resource "google_compute_http_health_check" "concourse-public" {
+  name         = "${var.resource-prefix}-concourse-public"
+  request_path = "/"
+  host         = ""
+  port         = 8080
+
+  healthy_threshold   = 10
+  unhealthy_threshold = 2
+  timeout_sec         = 5
+  check_interval_sec  = 30
+}
+
+  //// Create Target Pool for PCF
+  resource "google_compute_target_pool" "pcf-public" {
+  name          = "${var.resource-prefix}-pcf-public"
+  health_checks = [
+    "${google_compute_http_health_check.pcf-public.name}",
+  ]
+}
+
+  //// Create Target Pool for Concourse
+  resource "google_compute_target_pool" "concourse-public" {
+  name          = "${var.resource-prefix}-concourse-public"
+  health_checks = [
+    "${google_compute_http_health_check.concourse-public.name}",
+  ]
+}
+
+  //// Create Forwarding for PCF - http
+  resource "google_compute_forwarding_rule" "pcf-http" {
+  name       = "${var.resource-prefix}-pcf-http"
+  target     = "${google_compute_target_pool.pcf-public.self_link}"
+  ip_address = "${google_compute_address.cloudfoundry-public-ip.address}"
+  port_range = "80"
+}
+
+  //// Create Forwarding for PCF - https
+  resource "google_compute_forwarding_rule" "pcf-https" {
+  name       = "${var.resource-prefix}-pcf-https"
+  target     = "${google_compute_target_pool.pcf-public.self_link}"
+  ip_address = "${google_compute_address.cloudfoundry-public-ip.address}"
+  port_range = "443"
+}
+
+  //// Create Forwarding for PCF - ssh
+  resource "google_compute_forwarding_rule" "pcf-ssh" {
+  name       = "${var.resource-prefix}-pcf-ssh"
+  target     = "${google_compute_target_pool.pcf-public.self_link}"
+  ip_address = "${google_compute_address.cloudfoundry-public-ip.address}"
+  port_range = "2222"
+}
+
+  //// Create Forwarding for PCF - wss
+  resource "google_compute_forwarding_rule" "pcf-wss" {
+  name       = "${var.resource-prefix}-pcf-wss"
+  target     = "${google_compute_target_pool.pcf-public.self_link}"
+  ip_address = "${google_compute_address.cloudfoundry-public-ip.address}"
+  port_range = "4443"
+}
+
+  //// Create Forwarding for Concourse - http
+  resource "google_compute_forwarding_rule" "concourse-http" {
+  name       = "${var.resource-prefix}-concourse-http"
+  target     = "${google_compute_target_pool.concourse-public.self_link}"
+  ip_address = "${google_compute_address.concourse-public-ip.address}"
+  port_range = "8080"
+}
+
+  //// Create Forwarding for Concourse - https
+  resource "google_compute_forwarding_rule" "concourse-https" {
+  name       = "${var.resource-prefix}-concourse-https"
+  target     = "${google_compute_target_pool.concourse-public.self_link}"
+  ip_address = "${google_compute_address.concourse-public-ip.address}"
+  port_range = "4443"
+}
 
 /////////////////////////////////////
 //// Create BOSH bastion instance ///
@@ -115,7 +227,7 @@ resource "google_compute_instance" "bosh-bastion" {
   machine_type = "n1-standard-1"
   zone         = "${var.zone}"
 
-  tags = ["nat-traverse", "allow-ssh", "allow-ssh-public"]
+  tags = ["nat-traverse", "allow-ssh"]
 
   disk {
     image = "ubuntu-1404-trusty-v20160610"
@@ -124,7 +236,7 @@ resource "google_compute_instance" "bosh-bastion" {
   network_interface {
     subnetwork = "${google_compute_subnetwork.subnet-bosh.name}"
     access_config {
-      // nat_ip = "${google_compute_address.bosh-director-ip.self_link}"
+      // Ephemeral
     }
   }
 
@@ -138,7 +250,6 @@ resource "google_compute_instance" "bosh-bastion" {
   }
 
   metadata_startup_script = <<EOT
-#!/bin/bash
 apt-get update -y
 apt-get upgrade -y
 apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
@@ -152,6 +263,7 @@ gcloud config set compute/region $region
 mkdir -p /home/bosh
 ssh-keygen -t rsa -f /home/bosh/.ssh/bosh -C bosh -N ''
 sed '1s/^/bosh:/' /home/bosh/.ssh/bosh.pub > /home/bosh/.ssh/bosh.pub.gcp
+chown -R bosh:bosh /home/bosh/.ssh
 gcloud compute project-info add-metadata --metadata-from-file sshKeys=/home/bosh/.ssh/bosh.pub.gcp
 EOT
 
@@ -180,9 +292,8 @@ resource "google_compute_instance" "nat-gateway" {
   }
 
   metadata_startup_script = <<EOT
-  #!/bin/bash
-  "sudo sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'"
-  "sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE"
+sudo sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
   EOT
 }
 
@@ -191,9 +302,9 @@ resource "google_compute_instance" "nat-gateway" {
 resource "google_compute_route" "no-pubip-route" {
   name        = "${var.resource-prefix}-no-pubip-route"
   dest_range  = "0.0.0.0/0"
-  network     = "${google_compute_network.pcf.name}"
+  network     = "${google_compute_network.vnet.name}"
   next_hop_instance = "${google_compute_instance.nat-gateway.name}"
   next_hop_instance_zone = "${var.zone}"
-  priority    = 100
+  priority    = 800
   tags        = ["no-ip"]
 }
