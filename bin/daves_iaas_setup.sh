@@ -6,8 +6,8 @@ export projectid=google.com:pcf-demos
 export region=us-east1
 export zone=us-east1-c
 gcloud config set project ${projectid}
-gcloud config set compute/zone ${zone}
 gcloud config set compute/region ${region}
+gcloud config set compute/zone ${zone}
 
 # Create networks
 gcloud compute networks create vnet --mode custom
