@@ -1,6 +1,9 @@
 azs:
 - name: z1
   cloud_properties:
+    availability_zone: us-east1-c
+- name: z2
+  cloud_properties:
     availability_zone: us-east1-d
 
 vm_types:
@@ -57,74 +60,111 @@ disk_types:
     root_disk_type: pd-standard
 
 networks:
-- name: pcf-public
+- name: pcf-public-z1
   type: manual
   subnets:
-  - range: 10.0.15.0/24
-    gateway: 10.0.15.1
+  - range: 10.0.1.0/24
+    gateway: 10.0.1.1
     az: z1
     static:
-    - 10.0.15.12-10.0.15.17
+    - 10.0.1.6-10.0.1.11
     reserved:
-    - 10.0.15.254-10.0.15.255
-    - 10.0.15.1-10.0.15.5
+    - 10.0.1.1-10.0.1.5
+    - 10.0.1.250-10.0.1.255
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: c0-run1-vnet
-      subnetwork_name: c0-run1-subnet-pcf-public-us-east1
+      subnetwork_name: c0-run1-subnet-pcf-public-us-east1-c
       tags:
       - nat-traverse
       - pcf-public
-- name: pcf-private
+- name: pcf-private-z1
   type: manual
   subnets:
-  - range: 10.0.16.0/22
-    gateway: 10.0.16.1
+  - range: 10.0.2.0/23
+    gateway: 10.0.2.1
     az: z1
     static:
-    - 10.0.16.12-10.0.16.17
+    - 10.0.2.7-10.0.2.27
     reserved:
-    - 10.0.16.254-10.0.16.255
-    - 10.0.16.1-10.0.16.5
+    - 10.0.2.1-10.0.2.5
+    - 10.0.3.250-10.0.3.255
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: c0-run1-vnet
-      subnetwork_name: c0-run1-subnet-pcf-private-us-east1
+      subnetwork_name: c0-run1-subnet-pcf-private-us-east1-c
+      tags:
+      - nat-traverse
+- name: pcf-public-z2
+  type: manual
+  subnets:
+  - range: 10.0.6.0/24
+    gateway: 10.0.6.1
+    az: z2
+    static:
+    - 10.0.6.6-10.0.6.11
+    reserved:
+    - 10.0.6.1-10.0.6.5
+    - 10.0.6.250-10.0.6.255
+    dns: [169.254.169.254, 8.8.8.8]
+    cloud_properties:
+      network_name: c0-run1-vnet
+      subnetwork_name: c0-run1-subnet-pcf-public-us-east1-d
+      tags:
+      - nat-traverse
+      - pcf-public
+- name: pcf-private-z2
+  type: manual
+  subnets:
+  - range: 10.0.4.0/23
+    gateway: 10.0.4.1
+    az: z2
+    static:
+    - 10.0.4.7-10.0.4.27
+    reserved:
+    - 10.0.4.1-10.0.4.5
+    - 10.0.5.250-10.0.5.255
+    dns: [169.254.169.254, 8.8.8.8]
+    cloud_properties:
+      network_name: c0-run1-vnet
+      subnetwork_name: c0-run1-subnet-pcf-private-us-east1-d
       tags:
       - nat-traverse
 - name: concourse-public
   type: manual
   subnets:
-  - range: 10.0.2.0/24
-    gateway: 10.0.2.1
+  - range: 10.0.0.64/26
+    gateway: 10.0.0.65
     az: z1
     static:
-    - 10.0.2.12-10.0.2.17
+    - 10.0.0.72
     reserved:
-    - 10.0.2.254-10.0.2.255
-    - 10.0.2.1-10.0.2.6
+    - 10.0.0.65-10.0.0.70
+    - 10.0.0.122-10.0.0.127
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: c0-run1-vnet
-      subnetwork_name: c0-run1-subnet-concourse-public-us-east1
+      subnetwork_name: c0-run1-subnet-concourse-public-us-east1-c
       tags:
       - nat-traverse
       - concourse-public
 - name: concourse-private
   type: manual
   subnets:
-  - range: 10.0.3.0/24
-    gateway: 10.0.3.1
+  - range: 10.0.0.128/25
+    gateway: 10.0.0.129
     az: z1
     static:
-    - 10.0.3.12-10.0.3.17
+    - 10.0.0.134
+    - 10.0.0.135
+    - 10.0.0.136
     reserved:
-    - 10.0.3.254-10.0.3.255
-    - 10.0.3.1-10.0.3.6
+    - 10.0.0.129-10.0.0.133
+    - 10.0.0.250-10.0.0.255
     dns: [169.254.169.254, 8.8.8.8]
     cloud_properties:
       network_name: c0-run1-vnet
-      subnetwork_name: c0-run1-subnet-concourse-private-us-east1
+      subnetwork_name: c0-run1-subnet-concourse-private-us-east1-c
       tags:
       - nat-traverse
       - concourse-private
@@ -136,4 +176,4 @@ compilation:
   reuse_compilation_vms: true
   az: z1
   vm_type: medium
-  network: pcf-private
+  network: pcf-private-z1

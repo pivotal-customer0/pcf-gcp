@@ -3,7 +3,7 @@ director_uuid: 6b3ef064-e1ac-41ff-b461-afc01af44ca5
 
 releases:
 - name: concourse
-  version: 1.4.1
+  version: 1.5.1
 - name: garden-runc
   version: 0.4.0
 
@@ -22,7 +22,7 @@ instance_groups:
   - name: concourse-public
     default: [dns, gateway]
     static_ips:
-    - 10.0.2.12
+    - 10.0.0.72
   jobs:
   - name: atc
     release: concourse
@@ -99,7 +99,7 @@ instance_groups:
   networks:
   - name: concourse-private
     static_ips:
-    - 10.0.3.14
+    - 10.0.0.134
   jobs:
   - name: postgresql
     release: concourse
@@ -116,8 +116,8 @@ instance_groups:
   networks: 
   - name: concourse-private
     static_ips:
-    - 10.0.3.16
-    - 10.0.3.17
+    - 10.0.0.135
+    - 10.0.0.136
   jobs:
   - name: groundcrew
     release: concourse

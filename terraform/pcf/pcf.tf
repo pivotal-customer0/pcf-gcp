@@ -3,7 +3,9 @@
 provider "google" {
   project = "${var.project}"
   region = "${var.region}"
-  credentials = "${file("/tmp/terraform-bosh.key.json")}"
+  # zone1 = "${var.zone1}"
+  # zone2 = "${var.zone2}"
+  credentials = "${file("terraform-bosh.key.json")}"
 }
 
 /////////////////////////////////
@@ -36,29 +38,43 @@ provider "google" {
 
   //// Create Public Subnet for Concourse
   resource "google_compute_subnetwork" "subnet-concourse-public" {
-    name          = "${var.resource-prefix}-subnet-concourse-public-${var.region}"
+    name          = "${var.resource-prefix}-subnet-concourse-public-${var.zone1}"
     ip_cidr_range = "${var.concourse-subnet-public-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
   //// Create Private Subnet for Concourse
   resource "google_compute_subnetwork" "subnet-concourse-private" {
-    name          = "${var.resource-prefix}-subnet-concourse-private-${var.region}"
+    name          = "${var.resource-prefix}-subnet-concourse-private-${var.zone1}"
     ip_cidr_range = "${var.concourse-subnet-private-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Public Subnet for PCF
-  resource "google_compute_subnetwork" "subnet-pcf-public" {
-    name          = "${var.resource-prefix}-subnet-pcf-public-${var.region}"
-    ip_cidr_range = "${var.pcf-subnet-public-cidr-range}"
+  //// Create Public Subnet for PCF - zone1
+  resource "google_compute_subnetwork" "subnet-pcf-public-zone1" {
+    name          = "${var.resource-prefix}-subnet-pcf-public-${var.zone1}"
+    ip_cidr_range = "${var.pcf-subnet-public-zone1-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Private Subnet for PCF
-  resource "google_compute_subnetwork" "subnet-pcf-private" {
-    name          = "${var.resource-prefix}-subnet-pcf-private-${var.region}"
-    ip_cidr_range = "${var.pcf-subnet-private-cidr-range}"
+  //// Create Private Subnet for PCF - zone1
+  resource "google_compute_subnetwork" "subnet-pcf-private-zone1" {
+    name          = "${var.resource-prefix}-subnet-pcf-private-${var.zone1}"
+    ip_cidr_range = "${var.pcf-subnet-private-zone1-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
+  }
+
+    //// Create Public Subnet for PCF - zone2
+  resource "google_compute_subnetwork" "subnet-pcf-public-zone2" {
+    name          = "${var.resource-prefix}-subnet-pcf-public-${var.zone2}"
+    ip_cidr_range = "${var.pcf-subnet-public-zone2-cidr-range}"
+    network       = "${google_compute_network.vnet.self_link}"
+  }
+
+  //// Create Private Subnet for PCF - zone2
+  resource "google_compute_subnetwork" "subnet-pcf-private-zone2" {
+    name          = "${var.resource-prefix}-subnet-pcf-private-${var.zone2}"
+    ip_cidr_range = "${var.pcf-subnet-private-zone2-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
@@ -225,7 +241,7 @@ provider "google" {
 resource "google_compute_instance" "bosh-bastion" {
   name         = "${var.resource-prefix}-bosh-bastion"
   machine_type = "n1-standard-1"
-  zone         = "${var.zone}"
+  zone         = "${var.zone1}"
 
   tags = ["nat-traverse", "allow-ssh"]
 
@@ -245,7 +261,7 @@ resource "google_compute_instance" "bosh-bastion" {
   }
 
   metadata {
-    zone="${var.zone}"
+    zone="${var.zone1}"
     region="${var.region}"
   }
 
@@ -253,7 +269,7 @@ resource "google_compute_instance" "bosh-bastion" {
 apt-get update -y
 apt-get upgrade -y
 apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
-gem install bosh_cli
+gem install bosh_cli --no-ri --no-rdoc
 curl -o /tmp/cf.tgz https://s3.amazonaws.com/go-cli/releases/v6.19.0/cf-cli_6.19.0_linux_x86-64.tgz
 tar -zxvf /tmp/cf.tgz && mv cf /usr/bin/cf && chmod +x /usr/bin/cf
 curl -o /usr/bin/bosh-init https://s3.amazonaws.com/bosh-init-artifacts/bosh-init-0.0.94-linux-amd64
@@ -276,7 +292,7 @@ EOT
 resource "google_compute_instance" "nat-gateway" {
   name           = "${var.resource-prefix}-nat-gateway"
   machine_type   = "n1-standard-1"
-  zone           = "${var.zone}"
+  zone           = "${var.zone1}"
   can_ip_forward = true
   tags = ["nat-traverse", "allow-ssh"]
 
@@ -304,7 +320,7 @@ resource "google_compute_route" "no-pubip-route" {
   dest_range  = "0.0.0.0/0"
   network     = "${google_compute_network.vnet.name}"
   next_hop_instance = "${google_compute_instance.nat-gateway.name}"
-  next_hop_instance_zone = "${var.zone}"
+  next_hop_instance_zone = "${var.zone1}"
   priority    = 800
   tags        = ["no-ip"]
 }
@@ -315,4 +331,28 @@ output "CloudFoundry IP Address" {
 
 output "Concourse IP Address" {
     value = "${google_compute_address.concourse-public-ip.address}"
+}
+
+output "Zone 1 - Concourse Public Subnet" {
+    value = "${var.concourse-subnet-public-cidr-range}"
+}
+
+output "Zone 1 - Concourse Private Subnet" {
+    value = "${var.concourse-subnet-private-cidr-range}"
+}
+
+output "Zone 1 - CloudFoundry Public Subnet" {
+    value = "${var.pcf-subnet-public-zone1-cidr-range}"
+}
+
+output "Zone 1 - CloudFoundry Private Subnet" {
+    value = "${var.pcf-subnet-private-zone1-cidr-range}"
+}
+
+output "Zone 2 - CloudFoundry Public Subnet" {
+    value = "${var.pcf-subnet-public-zone2-cidr-range}"
+}
+
+output "Zone 2 - CloudFoundry Private Subnet" {
+    value = "${var.pcf-subnet-private-zone2-cidr-range}"
 }
