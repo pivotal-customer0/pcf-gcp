@@ -78,6 +78,7 @@ networks:
       subnetwork_name: c0-run1-subnet-bosh-us-east1
       tags:
       - nat-traverse
+      - no-ip
 - name: pcf-public-z1
   type: manual
   subnets:
@@ -96,6 +97,7 @@ networks:
       tags:
       - nat-traverse
       - pcf-public
+      - no-ip
 - name: pcf-private-z1
   type: manual
   subnets:
@@ -113,6 +115,7 @@ networks:
       subnetwork_name: c0-run1-subnet-pcf-private-us-east1-c
       tags:
       - nat-traverse
+      - no-ip
 - name: pcf-public-z2
   type: manual
   subnets:
@@ -131,6 +134,7 @@ networks:
       tags:
       - nat-traverse
       - pcf-public
+      - no-ip
 - name: pcf-private-z2
   type: manual
   subnets:
@@ -148,6 +152,7 @@ networks:
       subnetwork_name: c0-run1-subnet-pcf-private-us-east1-d
       tags:
       - nat-traverse
+      - no-ip
 - name: concourse-public
   type: manual
   subnets:
@@ -166,6 +171,7 @@ networks:
       tags:
       - nat-traverse
       - concourse-public
+      - no-ip
 - name: concourse-private
   type: manual
   subnets:
@@ -186,6 +192,7 @@ networks:
       tags:
       - nat-traverse
       - concourse-private
+      - no-ip
 - name: public
   type: vip
 
