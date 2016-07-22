@@ -1,0 +1,49 @@
+name: vault
+director_uuid: e70a30dd-8fbb-4a97-9ea1-58fc29fec0ff
+
+releases:
+- name: vault
+  version: 0.3.0
+  url: https://bosh.io/d/github.com/cloudfoundry-community/vault-boshrelease?v=0.3.0
+  sha1: bd1ae82104dcf36abf64875fc5a46e1661bf2eac
+- name: consul
+  version: "20"
+  url: https://bosh.io/d/github.com/cloudfoundry-community/consul-boshrelease?v=20
+  sha1: 9a0591c6b4d88d7d756ea933e14ddf112d05f334
+
+stemcells:
+- alias: ubuntu-trusty
+  os: ubuntu-trusty
+  version: "3262.2"
+  url: https://storage.googleapis.com/bosh-cpi-artifacts/light-bosh-stemcell-3262.2-google-kvm-ubuntu-trusty-go_agent.tgz
+  sha1: f46d82a6ae6e89a5635cb3122389f0c8459a82e0
+
+instance_groups:
+- name: vault
+  persistent_disk_type: large
+  instances: 1
+  vm_type: medium
+  stemcell: ubuntu-trusty
+  azs: [z1]
+  networks: [{name: bosh, static_ips: [10.0.0.10]}]
+  jobs:
+  - name: vault
+    release: vault
+    properties:
+      vault:
+        backend:
+          use_consul: true
+  - name: consul
+    release: consul
+    properties:
+      consul:
+        join_hosts:
+        - 10.0.0.10
+  update:
+    max_in_flight: 1
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 30000-300000
+  update_watch_time: 30000-300000
