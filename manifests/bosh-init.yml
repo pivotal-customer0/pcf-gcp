@@ -23,7 +23,7 @@ resource_pools:
       root_disk_size_gb: 50
       root_disk_type: pd-standard
       service_scopes:
-        - compute
+        - compute.instanceAdmin
         - devstorage.full_control
 
 disk_pools:
