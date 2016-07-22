@@ -265,11 +265,11 @@ resource "google_compute_instance" "bosh-bastion" {
     region="${var.region}"
   }
 
-  metadata_startup_script = <<EOT
+  metadata_startup_script = <<EOF
+#! /bin/bash
 apt-get update -y
 apt-get upgrade -y
 apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
-gem install bosh_cli --no-ri --no-rdoc
 curl -o /tmp/cf.tgz https://s3.amazonaws.com/go-cli/releases/v6.19.0/cf-cli_6.19.0_linux_x86-64.tgz
 tar -zxvf /tmp/cf.tgz && mv cf /usr/bin/cf && chmod +x /usr/bin/cf
 curl -o /usr/bin/bosh-init https://s3.amazonaws.com/bosh-init-artifacts/bosh-init-0.0.94-linux-amd64
@@ -281,7 +281,8 @@ ssh-keygen -t rsa -f /home/bosh/.ssh/bosh -C bosh -N ''
 sed '1s/^/bosh:/' /home/bosh/.ssh/bosh.pub > /home/bosh/.ssh/bosh.pub.gcp
 chown -R bosh:bosh /home/bosh/.ssh
 gcloud compute project-info add-metadata --metadata-from-file sshKeys=/home/bosh/.ssh/bosh.pub.gcp
-EOT
+gem install bosh_cli
+EOF
 
 }
 
@@ -307,10 +308,12 @@ resource "google_compute_instance" "nat-gateway" {
     }
   }
 
-  metadata_startup_script = <<EOT
+  metadata_startup_script = <<EOF
+#! /bin/bash
 sudo sh -c 'echo 1 > /proc/sys/net/ipv4/ip_forward'
 sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-  EOT
+EOF
+
 }
 
 //// Create NAT Route
