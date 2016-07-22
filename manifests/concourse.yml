@@ -1,11 +1,15 @@
 name: concourse-gcp
-director_uuid: 6b3ef064-e1ac-41ff-b461-afc01af44ca5
+director_uuid: e70a30dd-8fbb-4a97-9ea1-58fc29fec0ff
 
 releases:
 - name: concourse
   version: 1.5.1
+  url: https://github.com/concourse/concourse/releases/download/v1.5.1/concourse-1.5.1.tgz
+  sha1: 65c9e1a2fa82a04db2eb31cf2cc9833faebd8965
 - name: garden-runc
   version: 0.4.0
+  url: https://github.com/concourse/concourse/releases/download/v1.5.1/garden-runc-0.4.0.tgz
+  sha1: b59fb02eeae70104486251c82099316af04b77b7
 
 stemcells:
 - alias: trusty
