@@ -6,8 +6,8 @@ releases:
     url: https://bosh.io/d/github.com/cloudfoundry/bosh?v=257.3
     sha1: e4442afcc64123e11f2b33cc2be799a0b59207d0
   - name: bosh-google-cpi
-    url: https://storage.googleapis.com/bosh-cpi-artifacts/bosh-google-cpi-24.tgz
-    sha1: e2f77a0a8696b29fdb676cf447cfd9bc6841b648
+    url: https://storage.googleapis.com/bosh-cpi-artifacts/bosh-google-cpi-21.tgz
+    sha1: 1bda4007a22147a700257655d64b38f6b4c5c0f1
   - name: uaa
     url: https://bosh.io/d/github.com/cloudfoundry/uaa-release?v=12.2
     sha1: 899f1e10f27e82ac524f1158a513392bbfabf2a0
