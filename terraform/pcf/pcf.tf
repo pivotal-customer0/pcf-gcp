@@ -36,48 +36,26 @@ provider "google" {
     network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Public Subnet for Concourse
-  resource "google_compute_subnetwork" "subnet-concourse-public" {
-    name          = "${var.resource-prefix}-subnet-concourse-public-${var.zone1}"
-    ip_cidr_range = "${var.concourse-subnet-public-cidr-range}"
+  //// Create Subnet for Concourse
+  resource "google_compute_subnetwork" "subnet-concourse" {
+    name          = "${var.resource-prefix}-subnet-concourse-${var.zone1}"
+    ip_cidr_range = "${var.concourse-subnet-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Private Subnet for Concourse
-  resource "google_compute_subnetwork" "subnet-concourse-private" {
-    name          = "${var.resource-prefix}-subnet-concourse-private-${var.zone1}"
-    ip_cidr_range = "${var.concourse-subnet-private-cidr-range}"
+  //// Create Subnet for PCF - zone1
+  resource "google_compute_subnetwork" "subnet-pcf-zone1" {
+    name          = "${var.resource-prefix}-subnet-pcf-${var.zone1}"
+    ip_cidr_range = "${var.pcf-subnet-zone1-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
 
-  //// Create Public Subnet for PCF - zone1
-  resource "google_compute_subnetwork" "subnet-pcf-public-zone1" {
-    name          = "${var.resource-prefix}-subnet-pcf-public-${var.zone1}"
-    ip_cidr_range = "${var.pcf-subnet-public-zone1-cidr-range}"
+    //// Create Subnet for PCF - zone2
+  resource "google_compute_subnetwork" "subnet-pcf-zone2" {
+    name          = "${var.resource-prefix}-subnet-pcf-${var.zone2}"
+    ip_cidr_range = "${var.pcf-subnet-zone2-cidr-range}"
     network       = "${google_compute_network.vnet.self_link}"
   }
-
-  //// Create Private Subnet for PCF - zone1
-  resource "google_compute_subnetwork" "subnet-pcf-private-zone1" {
-    name          = "${var.resource-prefix}-subnet-pcf-private-${var.zone1}"
-    ip_cidr_range = "${var.pcf-subnet-private-zone1-cidr-range}"
-    network       = "${google_compute_network.vnet.self_link}"
-  }
-
-    //// Create Public Subnet for PCF - zone2
-  resource "google_compute_subnetwork" "subnet-pcf-public-zone2" {
-    name          = "${var.resource-prefix}-subnet-pcf-public-${var.zone2}"
-    ip_cidr_range = "${var.pcf-subnet-public-zone2-cidr-range}"
-    network       = "${google_compute_network.vnet.self_link}"
-  }
-
-  //// Create Private Subnet for PCF - zone2
-  resource "google_compute_subnetwork" "subnet-pcf-private-zone2" {
-    name          = "${var.resource-prefix}-subnet-pcf-private-${var.zone2}"
-    ip_cidr_range = "${var.pcf-subnet-private-zone2-cidr-range}"
-    network       = "${google_compute_network.vnet.self_link}"
-  }
-
 
   //// Create Firewall Rule for allow-ssh
   resource "google_compute_firewall" "allow-ssh" {
@@ -336,26 +314,14 @@ output "Concourse IP Address" {
     value = "${google_compute_address.concourse-public-ip.address}"
 }
 
-output "Zone 1 - Concourse Public Subnet" {
-    value = "${var.concourse-subnet-public-cidr-range}"
+output "Zone 1 - Concourse Subnet" {
+    value = "${var.concourse-subnet-cidr-range}"
 }
 
-output "Zone 1 - Concourse Private Subnet" {
-    value = "${var.concourse-subnet-private-cidr-range}"
+output "Zone 1 - CloudFoundry Subnet" {
+    value = "${var.pcf-subnet-zone1-cidr-range}"
 }
 
-output "Zone 1 - CloudFoundry Public Subnet" {
-    value = "${var.pcf-subnet-public-zone1-cidr-range}"
-}
-
-output "Zone 1 - CloudFoundry Private Subnet" {
-    value = "${var.pcf-subnet-private-zone1-cidr-range}"
-}
-
-output "Zone 2 - CloudFoundry Public Subnet" {
-    value = "${var.pcf-subnet-public-zone2-cidr-range}"
-}
-
-output "Zone 2 - CloudFoundry Private Subnet" {
-    value = "${var.pcf-subnet-private-zone2-cidr-range}"
+output "Zone 2 - CloudFoundry Subnet" {
+    value = "${var.pcf-subnet-zone2-cidr-range}"
 }

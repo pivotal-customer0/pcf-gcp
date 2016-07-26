@@ -23,7 +23,7 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks:
-  - name: concourse-public
+  - name: concourse
     default: [dns, gateway]
     static_ips:
     - 10.0.0.72
@@ -101,9 +101,9 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks:
-  - name: concourse-private
+  - name: concourse
     static_ips:
-    - 10.0.0.134
+    - 10.0.0.73
   jobs:
   - name: postgresql
     release: concourse
@@ -118,10 +118,10 @@ instance_groups:
   stemcell: trusty
   azs: [z1]
   networks: 
-  - name: concourse-private
+  - name: concourse
     static_ips:
-    - 10.0.0.135
-    - 10.0.0.136
+    - 10.0.0.74
+    - 10.0.0.75
   jobs:
   - name: groundcrew
     release: concourse

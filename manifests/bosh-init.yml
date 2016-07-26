@@ -42,8 +42,8 @@ networks:
       gateway: 10.0.0.1
       static: [10.0.0.4]
       cloud_properties:
-        network_name: c0-run1-vnet
-        subnetwork_name: c0-run1-subnet-bosh-us-east1
+        network_name: dwallraff-vnet
+        subnetwork_name: dwallraff-subnet-bosh-us-east1
         ephemeral_external_ip: false
         tags:
           - nat-traverse
