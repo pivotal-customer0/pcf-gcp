@@ -116,10 +116,25 @@ provider "google" {
     }
     allow {
       protocol = "tcp"
-      ports    = ["80","443", "2222", "4443"]
+      ports    = ["80","443", "4443"]
     }
     source_ranges = ["0.0.0.0/0"]
     target_tags = ["pcf-public"]
+}
+
+  //// Create Firewall Rule for PCF - SSH
+  resource "google_compute_firewall" "pcf-public-ssh" {
+    name    = "${var.resource-prefix}-pcf-public-ssh"
+    network = "${google_compute_network.vnet.name}"
+    allow {
+      protocol = "icmp"
+    }
+    allow {
+      protocol = "tcp"
+      ports    = ["2222"]
+    }
+    source_ranges = ["0.0.0.0/0"]
+    target_tags = ["pcf-public-ssh"]
 }
 
   //// Create HTTP Health Check Rule for PCF
@@ -156,6 +171,11 @@ provider "google" {
   ]
 }
 
+  //// Create Target Pool for PCF - SSH
+  resource "google_compute_target_pool" "pcf-public-ssh" {
+  name          = "${var.resource-prefix}-pcf-public-ssh"
+}
+
   //// Create Target Pool for Concourse
   resource "google_compute_target_pool" "concourse-public" {
   name          = "${var.resource-prefix}-concourse-public"
@@ -183,7 +203,7 @@ provider "google" {
   //// Create Forwarding for PCF - ssh
   resource "google_compute_forwarding_rule" "pcf-ssh" {
   name       = "${var.resource-prefix}-pcf-ssh"
-  target     = "${google_compute_target_pool.pcf-public.self_link}"
+  target     = "${google_compute_target_pool.pcf-public-ssh.self_link}"
   ip_address = "${google_compute_address.cloudfoundry-public-ip.address}"
   port_range = "2222"
 }
