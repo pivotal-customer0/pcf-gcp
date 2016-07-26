@@ -13,6 +13,7 @@ variable "pcf-subnet-public-zone1-cidr-range" {}
 variable "pcf-subnet-private-zone2-cidr-range" {}
 variable "pcf-subnet-public-zone2-cidr-range" {}
 variable "sys-domain" {}
+variable "key-jason" {}
 
 
 //// Set GCP Provider info
@@ -22,7 +23,8 @@ provider "google" {
   region = "${var.region}"
   # zone1 = "${var.zone1}"
   # zone2 = "${var.zone2}"
-  credentials = "${file("terraform-bosh.key.json")}"
+//  credentials = "${file("terraform-bosh.key.json")}"
+  credentials ="${var.key-json}"
 }
 
 /////////////////////////////////
