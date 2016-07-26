@@ -13,7 +13,7 @@ variable "pcf-subnet-public-zone1-cidr-range" {}
 variable "pcf-subnet-private-zone2-cidr-range" {}
 variable "pcf-subnet-public-zone2-cidr-range" {}
 variable "sys-domain" {}
-variable "key-jason" {}
+variable "key-json" {}
 
 
 //// Set GCP Provider info
