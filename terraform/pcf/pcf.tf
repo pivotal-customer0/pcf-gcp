@@ -265,6 +265,7 @@ resource "google_compute_instance" "bosh-bastion" {
 
   metadata_startup_script = <<EOF
 #! /bin/bash
+adduser --disabled-password --gecos "" bosh
 apt-get update -y
 apt-get upgrade -y
 apt-get install -y build-essential zlibc zlib1g-dev ruby ruby-dev openssl libxslt-dev libxml2-dev libssl-dev libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
@@ -274,7 +275,7 @@ curl -o /usr/bin/bosh-init https://s3.amazonaws.com/bosh-init-artifacts/bosh-ini
 chmod +x /usr/bin/bosh-init
 gcloud config set compute/zone $zone
 gcloud config set compute/region $region
-mkdir -p /home/bosh
+mkdir -p /home/bosh/.ssh
 ssh-keygen -t rsa -f /home/bosh/.ssh/bosh -C bosh -N ''
 sed '1s/^/bosh:/' /home/bosh/.ssh/bosh.pub > /home/bosh/.ssh/bosh.pub.gcp
 chown -R bosh:bosh /home/bosh/.ssh
