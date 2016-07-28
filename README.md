@@ -25,9 +25,9 @@ gcloud projects add-iam-policy-binding ${projectid} \
     --role roles/editor
     
 export GOOGLE_CREDENTIALS=$(cat terraform-bosh.key.json)
-
+```
 Update variables.tf.sample and move to variables.tf
-
+```
 terraform plan
 terraform apply
 ```
