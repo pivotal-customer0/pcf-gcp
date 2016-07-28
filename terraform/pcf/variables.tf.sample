@@ -1,34 +1,50 @@
 variable "project" {
   type = "string"
-  default = "mg-sandbox"
+  default = REPLACE_ME
 }
 
 variable "region" {
   type = "string"
-  default = "us-east1"
+  default = REPLACE_ME
 }
 
-variable "zone" {
+variable "zone1" {
   type = "string"
-  default = "us-east1-d"
+  default = REPLACE_ME
+}
+
+variable "zone2" {
+  type = "string"
+  default = REPLACE_ME
 }
 
 variable "resource-prefix" {
   type = "string"
-  default = "c0-run1"
+  default = REPLACE_ME
+}
+
+variable "sys-domain" {
+  type = "string"
+  default = REPLACE_ME
 }
 
 variable "bosh-subnet-cidr-range" {
   type = "string"
-  default = "10.0.0.0/24"
+  default = REPLACE_ME
 }
 
-variable "cc-subnet-cidr-range" {
+variable "concourse-subnet-cidr-range" {
   type = "string"
-  default = "10.0.2.0/24"
+  default = REPLACE_ME
 }
 
-variable "pcf-subnet-cidr-range" {
+variable "pcf-subnet-zone1-cidr-range" {
   type = "string"
-  default = "10.0.16.0/22"
+  default = REPLACE_ME
+}
+
+
+variable "pcf-subnet-zone2-cidr-range" {
+  type = "string"
+  default = REPLACE_ME
 }
