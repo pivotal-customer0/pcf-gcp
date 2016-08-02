@@ -6,12 +6,9 @@ variable "resource-prefix" {}
 variable "bosh-subnet-cidr-range" {}
 variable "zone1" {}
 variable "zone2" {}
-variable "concourse-subnet-public-cidr-range" {}
-variable "concourse-subnet-private-cidr-range" {}
-variable "pcf-subnet-private-zone1-cidr-range" {}
-variable "pcf-subnet-public-zone1-cidr-range" {}
-variable "pcf-subnet-private-zone2-cidr-range" {}
-variable "pcf-subnet-public-zone2-cidr-range" {}
+variable "concourse-subnet-cidr-range" {}
+variable "pcf-subnet-zone1-cidr-range" {}
+variable "pcf-subnet-zone2-cidr-range" {}
 variable "sys-domain" {}
 variable "key-json" {}
 
