@@ -5,7 +5,7 @@ provider "google" {
   region = "${var.region}"
   # zone1 = "${var.zone1}"
   # zone2 = "${var.zone2}"
-  credentials = "${file("terraform-bosh.key.json")}"
+  credentials = "${var.key-json}"
 }
 
 /////////////////////////////////
