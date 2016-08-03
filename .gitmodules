@@ -1,0 +1,6 @@
+[submodule "pcf-gcp-concourse"]
+	path = pcf-gcp-concourse
+	url = https://github.com/pivotal-customer0/pcf-gcp-concourse
+[submodule "pcf-gcp-concourse-dockerimage"]
+	path = pcf-gcp-concourse-dockerimage
+	url = https://github.com/pivotal-customer0/pcf-gcp-concourse-dockerimage
