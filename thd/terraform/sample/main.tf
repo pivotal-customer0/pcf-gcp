@@ -14,10 +14,12 @@ variable "zone-1" {
 
 variable "run-id" {
     type = "string"
+    default = "1"
 }
 
 variable "test-num-instances" {
     type = "string"
+    default = "1"
 }
 
 provider "google" {
